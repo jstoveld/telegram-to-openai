@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
 from telegram import Update
-from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
+from telegram.ext import CommandHandler, MessageHandler, filters
 import openai
 
 load_dotenv()
@@ -19,10 +19,25 @@ SYSTEM_MESSAGE = {"role": "system", "content": "You are a helpful assistant."}
 # Conversation history dictionary
 conversation_history = {}
 
+def sanitize_input(user_message):
+    # Remove any potentially harmful content
+    # This is a basic example, you might need a more comprehensive check depending on your use case
+    user_message = user_message.replace("<", "").replace(">", "")
+
+    # Limit the length of the message
+    MAX_MESSAGE_LENGTH = 500
+    if len(user_message) > MAX_MESSAGE_LENGTH:
+        user_message = user_message[:MAX_MESSAGE_LENGTH]
+
+    return user_message
+
 async def gpt_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Get the user's message
     user_message = update.message.text
     print(f"Received message: {user_message}")
+
+    # Sanitize the user's message
+    user_message = sanitize_input(user_message)
 
     # Retrieve the conversation history for this user
     user_id = update.message.from_user.id
